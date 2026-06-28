@@ -101,7 +101,122 @@ const loginUser = async (req, res) => {
   }
 };
 
+
+// Get User Profile 
+const getUserProfile = async (req, res) => {
+  try {
+    
+    const user = await User.findById(req.user.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}; 
+
+// Update User Profile
+const updateUser = async (req, res) => {
+  try {
+    
+   const { name, avatar }  = req.body;
+
+   const user = await User.findById(req.user.id);
+
+   if (!user) {
+     return res.status(404).json({
+      success: false,
+      message: "User not found",
+     });
+   }
+
+   if(name)user.name = name;
+   if(avatar)user.avatar = avatar;
+
+   await user.save();
+
+   res.status(200).json({
+    success: true,
+    message: "User updated succesfully",
+    user: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      role: user.role,
+    },
+   });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Change Password
+const changPassword = async (req, res) => {
+  try {
+    
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password and nre password are required",
+      });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Currebt password is required",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed succesfully",
+    })
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  getUserProfile,
+  updateUser,
+  changPassword,
 };
