@@ -6,6 +6,7 @@ const morgan = require("morgan");
 
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const workspaceRoutes = require("./routes/workspaceRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 
 // Load Environment Variables
@@ -45,6 +46,9 @@ app.get("/", (req, res) => {
 
 // Authentication Routes
 app.use("/api/auth", authRoutes);
+
+// Workspace Routes
+app.use("/api/workspaces", workspaceRoutes);
 
 // Protected Route
 app.get("/api/profile", authMiddleware, (req, res) => {
